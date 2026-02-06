@@ -556,9 +556,37 @@ class ScriptRunner:
             self.root.after(0, lambda p=script_path: self._run_script(p))
 
     def _launch_vibefoundry(self):
-        """Open VibeFoundry Assistant in browser"""
+        """Open VibeFoundry Assistant in app mode (no URL bar)"""
         self._log("🚀 Opening VibeFoundry Assistant...")
-        webbrowser.open("https://vibefoundry.ai/file-preview/")
+        url = "https://vibefoundry.ai/file-preview/"
+
+        # Try to open in app mode (no URL bar)
+        if sys.platform == "darwin":  # macOS
+            chrome_paths = [
+                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+                "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+                "/Applications/Chromium.app/Contents/MacOS/Chromium",
+            ]
+            for chrome in chrome_paths:
+                if os.path.exists(chrome):
+                    subprocess.Popen([chrome, f"--app={url}"])
+                    self._log("✓ Opened in app mode")
+                    return
+        elif sys.platform == "win32":  # Windows
+            import shutil
+            chrome = shutil.which("chrome") or shutil.which("google-chrome")
+            edge = shutil.which("msedge")
+            if chrome:
+                subprocess.Popen([chrome, f"--app={url}"])
+                self._log("✓ Opened in app mode")
+                return
+            elif edge:
+                subprocess.Popen([edge, f"--app={url}"])
+                self._log("✓ Opened in app mode")
+                return
+
+        # Fallback to regular browser
+        webbrowser.open(url)
         self._log("✓ Browser opened")
 
     def _on_close(self):
