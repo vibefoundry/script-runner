@@ -53,10 +53,6 @@ class ScriptRunner:
         self.script_vars = {}
         self.script_mtimes = {}
 
-        # Subprocess references for VibeFoundry Assistant
-        self.backend_process = None
-        self.frontend_process = None
-
         # Auto-run state
         self.auto_run_var = tk.BooleanVar(value=False)
 
@@ -560,63 +556,18 @@ class ScriptRunner:
             self.root.after(0, lambda p=script_path: self._run_script(p))
 
     def _launch_vibefoundry(self):
-        """Launch the VibeFoundry Assistant backend and frontend"""
-        self._log("🚀 Launching VibeFoundry Assistant...")
-
-        # Get the vibefoundry-assistant directory
-        script_dir = Path(__file__).parent
-        backend_dir = script_dir / "backend"
-
-        if not backend_dir.exists():
-            self._log(f"❌ Backend not found at: {backend_dir}")
-            return
-
-        def launch():
-            try:
-                # Start backend
-                self.backend_process = subprocess.Popen(
-                    [sys.executable, "main.py"],
-                    cwd=str(backend_dir),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT
-                )
-                self.root.after(0, lambda: self._log("✓ Backend started (port 8000)"))
-
-                time.sleep(2)
-
-                # Start frontend
-                self.frontend_process = subprocess.Popen(
-                    "npm run dev",
-                    cwd=str(script_dir),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    shell=True
-                )
-                self.root.after(0, lambda: self._log("✓ Frontend started (port 5173)"))
-
-                time.sleep(3)
-
-                # Open browser
-                webbrowser.open("http://localhost:5173/file-preview/")
-                self.root.after(0, lambda: self._log("✓ Browser opened"))
-
-            except Exception as e:
-                self.root.after(0, lambda: self._log(f"❌ Launch error: {e}"))
-
-        threading.Thread(target=launch, daemon=True).start()
+        """Open VibeFoundry Assistant in browser"""
+        self._log("🚀 Opening VibeFoundry Assistant...")
+        webbrowser.open("https://vibefoundry.ai/file-preview/")
+        self._log("✓ Browser opened")
 
     def _on_close(self):
         """Clean up on window close"""
         self.watching = False
-        if self.backend_process:
-            self.backend_process.terminate()
-        if self.frontend_process:
-            self.frontend_process.terminate()
         self.root.destroy()
 
     def run(self):
         """Start the application"""
-        self.root.after(500, self._select_folder)
         self.root.mainloop()
 
 
